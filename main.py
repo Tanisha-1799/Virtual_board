@@ -1,16 +1,16 @@
-# This is a sample Python script.
+import cv2
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+#variables for camera dimension
+width, height = 1280, 720
 
+#Camera setup
+cap =cv2.VideoCapture(0)
+cap.set(3,width)
+cap.set(4,height)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+while True:
+    success, img=cap.read()
+    cv2.imshow("Image",img)
+    key=cv2.waitKey(1) ##for some delay
+    if key == ord('q'):    ##to quit the camera when "q" is pressed
+        break
