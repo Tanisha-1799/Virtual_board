@@ -30,6 +30,7 @@ while True:
     currentBoard=cv2.imread(board)
 
     # Resize webcam image and board size
+    # since the size of the image is too large so adjusting it to the screen resolution
     currentBoard=cv2.resize(currentBoard,(1360,760))
     smallImage = cv2.resize(img, (ws, hs))
     # Overlay webcam image in top-right corner
