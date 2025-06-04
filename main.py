@@ -1,6 +1,7 @@
 import os
-
 import cv2
+from cvzone.HandTrackingModule import HandDetector
+
 
 #variables for camera dimension
 width, height = 900, 720
@@ -22,12 +23,19 @@ print(boards)
 num=0
 ws, hs =400, 200
 
+#Hand detector code
+detector=HandDetector(detectionCon=0.8, maxHands=1)
+
+
 while True:
     # Importing the images
     success, img=cap.read()
     #extracting images from folder
     board=os.path.join(folderPath,boards[num])
     currentBoard=cv2.imread(board)
+
+    hands, img=detector.findHands(img)
+
 
     # Resize webcam image and board size
     # since the size of the image is too large so adjusting it to the screen resolution
