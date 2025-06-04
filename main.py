@@ -30,11 +30,14 @@ detector=HandDetector(detectionCon=0.8, maxHands=1)
 while True:
     # Importing the images
     success, img=cap.read()
+    #Since image is a mirror one so need to flip the image
+    img = cv2.flip(img,1)   # 1:Horizontal, 0:Vertical
+
     #extracting images from folder
     board=os.path.join(folderPath,boards[num])
     currentBoard=cv2.imread(board)
 
-    hands, img=detector.findHands(img)
+    hands, img=detector.findHands(img,flipType=False)
 
 
     # Resize webcam image and board size
