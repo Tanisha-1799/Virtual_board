@@ -37,8 +37,6 @@ while True:
     h, w, _ = currentBoard.shape
     if h >= hs and w >= ws:
         currentBoard[0:hs, w - ws:w] = smallImage
-    else:
-        print("⚠️ Board image is smaller than the webcam overlay size.")
 
     cv2.imshow("Image",img)
     cv2.imshow("Board",currentBoard)
