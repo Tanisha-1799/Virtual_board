@@ -22,6 +22,9 @@ print(boards)
 #variables
 num=0
 ws, hs =400, 200
+gestureThreshold=350
+buttonPressed = False
+buttonCounter=0
 
 #Hand detector code
 detector=HandDetector(detectionCon=0.8, maxHands=1)
@@ -37,7 +40,38 @@ while True:
     board=os.path.join(folderPath,boards[num])
     currentBoard=cv2.imread(board)
 
-    hands, img=detector.findHands(img,flipType=False)
+    hands, img=detector.findHands(img)
+    cv2.line(img,(0,gestureThreshold),(width,gestureThreshold),(0,255,0),10)
+
+    if hands and buttonPressed is False:
+        hand = hands[0]
+        fingers = detector.fingersUp(hand)
+        cx,cy = hand['center']
+
+        #print(fingers)
+
+        #if hand is at the height of the face then we are going to take that gesture
+        if cy<=gestureThreshold :
+            # Gesture 1 - left
+            if fingers == [1,0,0,0,0]: # fingers:[thumb,fin1,fin2,fin3,fin4]
+                print("Left")
+                buttonPressed==True
+                if num >0:
+                    num -= 1
+
+            # Gesture 2 - Right
+            if fingers == [0, 0, 0, 0, 1]:  # fingers:[thumb,fin1,fin2,fin3,fin4]
+                print("Right")
+                buttonPressed == True
+                if num < len(boards)-1:
+                    num += 1
+
+
+    #Button Pressed iterations
+    if buttonPressed:
+        buttonCounter +=1
+
+
 
 
     # Resize webcam image and board size
