@@ -25,6 +25,7 @@ ws, hs =400, 200
 gestureThreshold=350
 buttonPressed = False
 buttonCounter=0
+buttonDelay=30
 
 #Hand detector code
 detector=HandDetector(detectionCon=0.8, maxHands=1)
@@ -47,6 +48,10 @@ while True:
         hand = hands[0]
         fingers = detector.fingersUp(hand)
         cx,cy = hand['center']
+        #accessing lmlist that is landmark list is basically the hand dictionary
+        lmList = hand['lmList']
+        #we will get 8 point that is the index finger
+        indexFinger = lmList[8][0], lmList[8][1]
 
         #print(fingers)
 
@@ -55,21 +60,28 @@ while True:
             # Gesture 1 - left
             if fingers == [1,0,0,0,0]: # fingers:[thumb,fin1,fin2,fin3,fin4]
                 print("Left")
-                buttonPressed==True
+
                 if num >0:
+                    buttonPressed = True
                     num -= 1
 
             # Gesture 2 - Right
             if fingers == [0, 0, 0, 0, 1]:  # fingers:[thumb,fin1,fin2,fin3,fin4]
                 print("Right")
-                buttonPressed == True
+
                 if num < len(boards)-1:
+                    buttonPressed = True
                     num += 1
 
+            # Gesture 3 - Show Pointer
+            if fingers == [0,1,1,0,0]:
+                cv2.circle(currentBoard, indexFinger, 12, (0,0,255), cv2.FILLED)
 
     #Button Pressed iterations
     if buttonPressed:
         buttonCounter +=1
+        if buttonCounter > buttonDelay :
+            buttonPressed =False
 
 
 
