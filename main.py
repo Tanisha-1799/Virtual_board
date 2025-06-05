@@ -22,7 +22,7 @@ print(boards)
 #variables
 num=0
 ws, hs =400, 200
-gestureThreshold=350
+gestureThreshold=300
 buttonPressed = False
 buttonCounter=0
 buttonDelay=30
@@ -73,9 +73,9 @@ while True:
                     buttonPressed = True
                     num += 1
 
-            # Gesture 3 - Show Pointer
-            if fingers == [0,1,1,0,0]:
-                cv2.circle(currentBoard, indexFinger, 12, (0,0,255), cv2.FILLED)
+        # Gesture 3 - Show Pointer
+        if fingers == [0, 1, 1, 0, 0]:
+            cv2.circle(currentBoard, indexFinger, 12, (0, 0, 255), cv2.FILLED)
 
     #Button Pressed iterations
     if buttonPressed:
