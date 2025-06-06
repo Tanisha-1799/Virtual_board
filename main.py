@@ -75,6 +75,7 @@ while True:
 
         # Gesture 3 - Show Pointer
         if fingers == [0, 1, 1, 0, 0]:
+            #Adding a pointer at the tip of the index finger using gesture
             cv2.circle(currentBoard, indexFinger, 12, (0, 0, 255), cv2.FILLED)
 
     #Button Pressed iterations
