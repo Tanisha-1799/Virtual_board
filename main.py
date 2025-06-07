@@ -1,10 +1,10 @@
 import os
 import cv2
 from cvzone.HandTrackingModule import HandDetector
-
+import numpy as np
 
 #variables for camera dimension
-width, height = 900, 720
+width, height = 1280, 720
 folderPath="Image_keeper"
 
 #Camera setup
@@ -21,11 +21,13 @@ print(boards)
 
 #variables
 num=0
-ws, hs =400, 200
+ws, hs =int(213*1), int(120*1)
 gestureThreshold=300
 buttonPressed = False
 buttonCounter=0
 buttonDelay=30
+#For drawing line:
+annotations=[]
 
 #Hand detector code
 detector=HandDetector(detectionCon=0.8, maxHands=1)
@@ -50,8 +52,13 @@ while True:
         cx,cy = hand['center']
         #accessing lmlist that is landmark list is basically the hand dictionary
         lmList = hand['lmList']
+
+        #Constrain value for easy drawing
         #we will get 8 point that is the index finger
         indexFinger = lmList[8][0], lmList[8][1]
+        # xVal = int(np.interp(lmList[8][0],[width//2, w],[0, width]))
+        # yVal = int(np.interp(lmList[8][0], [150, height-150], [0, height]))
+        # indexFinger =xVal,yVal
 
         #print(fingers)
 
@@ -76,7 +83,13 @@ while True:
         # Gesture 3 - Show Pointer
         if fingers == [0, 1, 1, 0, 0]:
             #Adding a pointer at the tip of the index finger using gesture
-            cv2.circle(currentBoard, indexFinger, 12, (0, 0, 255), cv2.FILLED)
+            cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
+
+        # Gesture 4 - Draw line
+        if fingers == [0,1,0,0,0]:
+            cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
+            annotations.append((indexFinger))
+
 
     #Button Pressed iterations
     if buttonPressed:
@@ -86,10 +99,12 @@ while True:
 
 
 
+    for i in range (len(annotations)):
+        cv2.line(currentBoard, annotations[i-1], annotations[i],(0,0,200), 20)
 
     # Resize webcam image and board size
     # since the size of the image is too large so adjusting it to the screen resolution
-    currentBoard=cv2.resize(currentBoard,(1360,760))
+    currentBoard=cv2.resize(currentBoard,(900,500))
     smallImage = cv2.resize(img, (ws, hs))
     # Overlay webcam image in top-right corner
     h, w, _ = currentBoard.shape
