@@ -2,6 +2,7 @@ import os
 import cv2
 from cvzone.HandTrackingModule import HandDetector
 import numpy as np
+import joblib  # <-- added
 
 # Camera dimensions
 width, height = 1280, 720
@@ -33,6 +34,9 @@ annotationStart = False
 # Hand detector
 detector = HandDetector(detectionCon=0.8, maxHands=1)
 
+# Load AI gesture model
+model = joblib.load("gesture_model.pkl")
+
 while True:
     success, img = cap.read()
     img = cv2.flip(img, 1)
@@ -46,40 +50,45 @@ while True:
 
     if hands and not buttonPressed:
         hand = hands[0]
-        fingers = detector.fingersUp(hand)
-        cx, cy = hand['center']
         lmList = hand['lmList']
+        cx, cy = hand['center']
         indexFinger = lmList[8][0], lmList[8][1]
 
-        if cy <= gestureThreshold:
-            # Left gesture
-            if fingers == [1, 0, 0, 0, 0]:
-                print("Left")
-                if num > 0:
-                    buttonPressed = True
-                    num -= 1
+        if lmList:
+            # Prepare input for model prediction
+            flat_landmarks = [coord for point in lmList for coord in point]
+            predicted_gesture = model.predict([flat_landmarks])[0]
+            print("Predicted Gesture:", predicted_gesture)
 
-            # Right gesture
-            if fingers == [0, 0, 0, 0, 1]:
-                print("Right")
-                if num < len(boards) - 1:
-                    buttonPressed = True
-                    num += 1
+            if cy <= gestureThreshold:
+                if predicted_gesture == "prev":
+                    print("Prev Board")
+                    if num > 0:
+                        buttonPressed = True
+                        num -= 1
 
-        # Pointer gesture
-        if fingers == [0, 1, 1, 0, 0]:
-            cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
+                elif predicted_gesture == "next":
+                    print("Next Board")
+                    if num < len(boards) - 1:
+                        buttonPressed = True
+                        num += 1
 
-        # Draw gesture
-        if fingers == [0, 1, 0, 0, 0]:
-            if not annotationStart:  
-                annotationStart = True
-                annotationNumber += 1
-                annotations.append([])
-            annotations[annotationNumber].append(indexFinger)  #For Continuous drawing
-            cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
-        else:
-            annotationStart = False
+            if predicted_gesture == "pointer":
+                cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
+
+            elif predicted_gesture == "draw":
+                if not annotationStart:
+                    annotationStart = True
+                    annotationNumber += 1
+                    annotations.append([])
+                annotations[annotationNumber].append(indexFinger)
+                cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
+            else:
+                annotationStart = False
+
+            # You can add eraser gesture logic here:
+            # elif predicted_gesture == "erase":
+            #     # Implement erase logic
 
     # Debounce button
     if buttonPressed:
@@ -94,8 +103,8 @@ while True:
             cv2.line(currentBoard, annotations[i][j - 1], annotations[i][j], (0, 0, 255), 10)
 
     # Show small webcam preview on top-right
-    smallImage = cv2.resize(img, (ws, hs))  # Resize webcam image, not board
-    currentBoard[0:hs, width - ws:width] = smallImage  # webcam image overlay on currentBoard
+    smallImage = cv2.resize(img, (ws, hs))
+    currentBoard[0:hs, width - ws:width] = smallImage
 
     # Display
     cv2.imshow("Image", img)
@@ -104,3 +113,6 @@ while True:
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
+
+cap.release()
+cv2.destroyAllWindows()
