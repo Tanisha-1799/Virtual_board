@@ -23,11 +23,11 @@ ws, hs = int(213 * 1), int(120 * 1)  # Small webcam window size
 gestureThreshold = 700
 buttonPressed = False
 buttonCounter = 0
-buttonDelay = 10
+buttonDelay = 5
 
 # For drawing
 annotations = [[]]
-annotationNumber = -1
+annotationNumber = 0
 annotationStart = False
 
 # Hand detector
@@ -39,10 +39,12 @@ while True:
 
     board = os.path.join(folderPath, boards[num])
     currentBoard = cv2.imread(board)
-    currentBoard = cv2.resize(currentBoard, (width, height))  # Match camera size
+    currentBoard = cv2.resize(
+        currentBoard, (width, height))  # Match camera size
 
     hands, img = detector.findHands(img)
-    cv2.line(img, (0, gestureThreshold), (width, gestureThreshold), (0, 255, 0), 10)
+    cv2.line(img, (0, gestureThreshold),
+             (width, gestureThreshold), (0, 255, 0), 10)
 
     if hands and not buttonPressed:
         hand = hands[0]
@@ -50,6 +52,9 @@ while True:
         cx, cy = hand['center']
         lmList = hand['lmList']
         indexFinger = lmList[8][0], lmList[8][1]
+        # xVal = int(np.interp(lmList[8][0],[width//2, width],[0, width]))
+        # yVal = int(np.interp(lmList[8][0], [150, height-150], [0, height]))
+        # indexFinger =xVal,yVal
 
         if cy <= gestureThreshold:
             # Left gesture
@@ -57,6 +62,9 @@ while True:
                 print("Left")
                 if num > 0:
                     buttonPressed = True
+                    annotations = [[]]
+                    annotationStart = False
+                    annotationNumber = 0
                     num -= 1
 
             # Right gesture
@@ -64,6 +72,9 @@ while True:
                 print("Right")
                 if num < len(boards) - 1:
                     buttonPressed = True
+                    annotations = [[]]
+                    annotationStart = False
+                    annotationNumber = 0
                     num += 1
 
         # Pointer gesture
@@ -72,14 +83,23 @@ while True:
 
         # Draw gesture
         if fingers == [0, 1, 0, 0, 0]:
-            if not annotationStart:  
+            if not annotationStart:
                 annotationStart = True
                 annotationNumber += 1
                 annotations.append([])
-            annotations[annotationNumber].append(indexFinger)  #For Continuous drawing
+            annotations[annotationNumber].append(
+                indexFinger)  # For Continuous drawing
             cv2.circle(currentBoard, indexFinger, 20, (0, 0, 255), cv2.FILLED)
         else:
             annotationStart = False
+
+        # Eraser Gesture
+        if fingers == [0, 1, 1, 1, 0]:
+            if annotations:
+                if annotationNumber >= 0:
+                    annotations.pop(-1)
+                    annotationNumber -= 1
+                    buttonPressed = True
 
     # Debounce button
     if buttonPressed:
@@ -91,11 +111,13 @@ while True:
     # Draw lines
     for i in range(len(annotations)):
         for j in range(1, len(annotations[i])):
-            cv2.line(currentBoard, annotations[i][j - 1], annotations[i][j], (0, 0, 255), 10)
+            cv2.line(currentBoard,
+                     annotations[i][j - 1], annotations[i][j], (0, 0, 255), 10)
 
     # Show small webcam preview on top-right
     smallImage = cv2.resize(img, (ws, hs))  # Resize webcam image, not board
-    currentBoard[0:hs, width - ws:width] = smallImage  # webcam image overlay on currentBoard
+    # webcam image overlay on currentBoard
+    currentBoard[0:hs, width - ws:width] = smallImage
 
     # Display
     cv2.imshow("Image", img)
